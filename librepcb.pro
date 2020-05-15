@@ -16,8 +16,3 @@ isEmpty(UNBUNDLE) {
 } else {
     message("Link dynamically")
 }
-contains(UNBUNDLE, quazip) {
-    message("Using system quazip")
-} else {
-    message("Using vendored quazip")
-}
