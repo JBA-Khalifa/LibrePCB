@@ -60,3 +60,12 @@ contains(UNBUNDLE, quazip) {
 } else {
     DEFINES += QUAZIP_STATIC
 }
+
+# add linking information to defines
+isEmpty(UNBUNDLE) {
+    DEFINES += "LINKING_TYPE=\"\\\"static\\\"\""
+    DEFINES += "UNBUNDLE=\"\\\"-\\\"\""
+} else {
+    DEFINES += "LINKING_TYPE=\"\\\"dynamic\\\"\""
+    DEFINES += "UNBUNDLE=\"\\\"$${UNBUNDLE}\\\"\""
+}
