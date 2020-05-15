@@ -57,3 +57,35 @@ jobs:
       UPLOAD_USER: $(ARTIFACTS_UPLOAD_USER)
       UPLOAD_PASS: $(ARTIFACTS_UPLOAD_PASS)
       UPLOAD_SIGN_KEY: $(ARTIFACTS_UPLOAD_SIGN_KEY)
+- job: Linux_Unbundled
+  pool:
+    vmImage: 'ubuntu-16.04'
+  variables:
+    OS: 'linux'
+    ARCH: 'x86_64'
+  strategy:
+    matrix:
+      Ubuntu_2004_GCC:
+        IMAGE: dbrgn/librepcb-dev:ubuntu-20.04-2
+  container: $[ variables['IMAGE'] ]
+  steps:
+  - checkout: self
+    clean: true
+    submodules: recursive
+  - bash: rm -rf libs/quazip
+    displayName: Remove unbundled submodules
+  - bash: |
+      source ./ci/install_dependencies.sh
+      # Pass modified PATH to following steps:
+      echo "##vso[task.setvariable variable=PATH]$PATH"
+    displayName: Install Dependencies
+  - bash: UNBUNDLE=quazip ./ci/build_librepcb.sh
+    displayName: Build LibrePCB
+  - bash: echo "##vso[task.setvariable variable=LD_LIBRARY_PATH]$(pwd)/build/output"
+    displayName: Export LD_LIBRARY_PATH
+  - bash: xvfb-run -a ./build/output/librepcb-unittests
+    displayName: Run LibrePCB Unittests
+  - bash: xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -v --librepcb-executable="build/install/opt/bin/librepcb-cli" ./tests/cli
+    displayName: Run LibrePCB-CLI Functional Tests
+  - bash: xvfb-run -a --server-args="-screen 0 1024x768x24" pytest -v --librepcb-executable="build/install/opt/bin/librepcb" ./tests/funq
+    displayName: Run LibrePCB Functional Tests
